@@ -108,14 +108,14 @@ export default {
    try {
       let response;
       if (this.editData) {
-         response = await axios.put(`http://127.0.0.1:8000/api/user-details/${this.editData.id}?_method=PUT`, formData, {
+         response = await axios.put(`http://localhost:8000/api/user-details/${this.editData.id}?_method=PUT`, formData, {
         headers: {
            'Content-Type': 'multipart/form-data',
            'Access-Control-Allow-Origin': '*'
         }
          });
       } else {
-         response = await axios.post('http://127.0.0.1:8000/api/user-details', formData, {
+         response = await axios.post('http://localhost:8000/api/user-details', formData, {
            headers: {
              'Content-Type': 'multipart/form-data',
              'Access-Control-Allow-Origin': '*'

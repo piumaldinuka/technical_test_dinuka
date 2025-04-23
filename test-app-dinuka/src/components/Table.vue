@@ -140,7 +140,7 @@ export default {
   },
   methods: {
     async fetchUsers() {
-      const { data } = await axios.get(`http://127.0.0.1:8000/api/user-details`,{
+      const { data } = await axios.get(`http://localhost:8000/api/user-details`,{
         headers: {
            'Content-Type': 'multipart/form-data',
            'Access-Control-Allow-Origin': '*'
@@ -157,7 +157,7 @@ export default {
       this.showForm = true;
     },
     async deleteUser(id) {
-      await axios.delete(`http://127.0.0.1:8000/api/user-details/${id}`, {
+      await axios.delete(`http://localhost:8000/api/user-details/${id}`, {
         headers: {
           'Content-Type': 'multipart/form-data',
           'Access-Control-Allow-Origin': '*'
