@@ -1,52 +1,148 @@
-<!-- src/components/UserForm.vue -->
 <template>
-  <form @submit.prevent="submit">
-    <input v-model="form.name" placeholder="Name" required />
-    <input v-model="form.email" placeholder="Email" type="email" required />
-    <input v-model="form.phone" placeholder="Phone" type="number" />
-    <input v-model="form.address" placeholder="Address" />
-    <input v-model="form.age" placeholder="Age" type="number" />
-    <input @change="handleFileUpload" type="file" />
-    <button type="submit">Save</button>
-    <div v-if="errors.length">
-      <ul><li v-for="(err, i) in errors" :key="i">{{ err }}</li></ul>
+  <form @submit.prevent="submitForm" class="form-container">
+    <div class="form-group">
+      <label for="name">Name</label>
+      <input id="name" v-model="form.name" placeholder="Name" required />
     </div>
+    <div class="form-group">
+      <label for="email">Email</label>
+      <input id="email" v-model="form.email" placeholder="Email" type="email" required />
+    </div>
+    <div class="form-group">
+      <label for="phone">Phone</label>
+      <input id="phone" v-model="form.phone" placeholder="Phone" type="number" />
+    </div>
+    <div class="form-group">
+      <label for="address">Address</label>
+      <input id="address" v-model="form.address" placeholder="Address" />
+    </div>
+    <div class="form-group">
+      <label for="age">Age</label>
+      <input id="age" v-model="form.age" placeholder="Age" type="number" />
+    </div>
+    <div class="form-group">
+      <label for="profile_picture">Profile Picture</label>
+      <input id="profile_picture" type="file" @change="handleFileUpload" />
+    </div>
+    <button type="submit" class="submit-button">Submit</button>
+    <p v-if="error" class="error-message">{{ error }}</p>
   </form>
 </template>
 
-<script setup>
-import { ref } from 'vue';
-import axios from '../services/api';
+<style scoped>
+.form-container {
+  max-width: 400px;
+  margin: 0 auto;
+  padding: 20px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background-color: #f9f9f9;
+}
 
-const form = ref({
-  name: '',
-  email: '',
-  phone: '',
-  address: '',
-  age: '',
-  profile_picture: null
-});
+.form-group {
+  margin-bottom: 15px;
+}
 
-const errors = ref([]);
+.form-group label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: bold;
+}
 
-const handleFileUpload = (e) => {
-  form.value.profile_picture = e.target.files[0];
-};
+.form-group input {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
 
-const submit = async () => {
-  errors.value = [];
-  const formData = new FormData();
-  for (let key in form.value) {
-    if (form.value[key] !== null) {
-      formData.append(key, form.value[key]);
+.submit-button {
+  width: 100%;
+  padding: 10px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.submit-button:hover {
+  background-color: #0056b3;
+}
+
+.error-message {
+  color: red;
+  margin-top: 10px;
+  text-align: center;
+}
+</style>
+
+<script>
+import axios from 'axios';
+
+export default {
+  props: ['editData'],
+  data() {
+    return {
+      form: {
+        name: '',
+        email: '',
+        phone: '',
+        address: '',
+        age: '',
+        profile_picture: null
+      },
+      error: null,
+    };
+  },
+  methods: {
+    handleFileUpload(e) {
+      this.form.profile_picture = e.target.files[0];
+    },
+    async submitForm() {
+   const formData = new FormData();
+   Object.keys(this.form).forEach(key => {
+      if (this.form[key]) formData.append(key, this.form[key]);
+   });
+
+   try {
+      let response;
+      if (this.editData) {
+         response = await axios.put(`http://127.0.0.1:8000/api/user-details/${this.editData.id}?_method=PUT`, formData, {
+        headers: {
+           'Content-Type': 'multipart/form-data',
+           'Access-Control-Allow-Origin': '*'
+        }
+         });
+      } else {
+         response = await axios.post('http://127.0.0.1:8000/api/user-details', formData, {
+           headers: {
+             'Content-Type': 'multipart/form-data',
+             'Access-Control-Allow-Origin': '*'
+           }
+         });
+      }
+      console.log(response.data); // Debugging: Check the response structure
+      this.$emit('refresh');
+   } catch (err) {
+      console.error(err); // Log the full error for debugging
+      this.error = err.response?.data?.message || 'Submission error';
+   }
+},
+    resetForm() {
+      this.form = {
+        name: '',
+        email: '',
+        phone: '',
+        address: '',
+        age: '',
+        profile_picture: null
+      };
+      this.error = null;
     }
-  }
-
-  try {
-    await axios.post('/users', formData);
-    alert('User saved!');
-  } catch (err) {
-    errors.value = Object.values(err.response.data.errors).flat();
+  },
+  mounted() {
+    if (this.editData) this.form = { ...this.editData };
   }
 };
 </script>

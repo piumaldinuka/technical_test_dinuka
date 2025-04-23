@@ -1,65 +1,65 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api;
 
+use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Models\UserProfile;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\Storage;
+use App\Models\UserDetail;
+use Illuminate\Validation\Rule;
+use Illuminate\Http\Middleware\HandleCors;
 
-class UserProfileController extends Controller
+class UserDetailController extends Controller
 {
     public function index()
     {
-        return User::paginate(10);
+        return UserDetail::paginate(10);
     }
 
     public function store(Request $request)
     {
-        $data = $request->validate([
+        $validated = $request->validate([
             'name' => 'required|string',
-            'email' => 'required|email|unique:users',
+            'email' => 'required|email|unique:user_details,email',
             'phone' => 'nullable|numeric',
             'address' => 'nullable|string',
             'age' => 'nullable|integer',
-            'profile_picture' => 'nullable|image|max:2048'
+            'profile_picture' => 'nullable|image|max:2048',
         ]);
 
         if ($request->hasFile('profile_picture')) {
-            $data['profile_picture'] = $request->file('profile_picture')->store('profiles', 'public');
+            $validated['profile_picture'] = $request->file('profile_picture')->store('profile_pics', 'public');
         }
 
-        return User::create($data);
+        return UserDetail::create($validated);
     }
 
-    public function show($id)
+    public function show(UserDetail $userDetail)
     {
-        return User::findOrFail($id);
+        return $userDetail;
     }
 
-    public function update(Request $request, $id)
+    public function update(Request $request, UserDetail $userDetail)
     {
-        $user = User::findOrFail($id);
-
-        $data = $request->validate([
+        $validated = $request->validate([
             'name' => 'required|string',
-            'email' => 'required|email|unique:users,email,' . $id,
+            'email' => ['required', 'email', Rule::unique('user_details')->ignore($userDetail->id)],
             'phone' => 'nullable|numeric',
             'address' => 'nullable|string',
             'age' => 'nullable|integer',
-            'profile_picture' => 'nullable|image|max:2048'
+            'profile_picture' => 'nullable|image|max:2048',
         ]);
 
         if ($request->hasFile('profile_picture')) {
-            $data['profile_picture'] = $request->file('profile_picture')->store('profiles', 'public');
+            $validated['profile_picture'] = $request->file('profile_picture')->store('profile_pics', 'public');
         }
 
-        $user->update($data);
-        return $user;
+        $userDetail->update($validated);
+        return $userDetail;
     }
 
-    public function destroy($id)
+    public function destroy(UserDetail $userDetail)
     {
-        return User::destroy($id);
+        $userDetail->delete();
+        return response()->json(['message' => 'Deleted successfully']);
     }
 }

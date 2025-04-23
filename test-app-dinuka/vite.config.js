@@ -11,6 +11,13 @@ export default defineConfig({
     vueDevTools(),
   ],
   resolve: {
+    proxy: {
+      '/api': {
+        target: 'http://localhost:8000', // Your Laravel backend URL
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api/, ''), // Optional: Remove '/api' prefix
+      },
+    },
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url))
     },
